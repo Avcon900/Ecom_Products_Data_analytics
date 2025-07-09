@@ -116,7 +116,7 @@ for category in range(len(categories)):
 
 driver.quit()
 
-df = pandas.DataFrame({
+df = pd.DataFrame({
     "Title": product_title,
     "Reviews": Number_of_Reviews,
     "Rating": Rating,

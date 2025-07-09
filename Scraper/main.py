@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import time
 
-categories = ['controllers']
+categories = ['Headphones']
 
 # Lists to hold final data
 product_title = []
@@ -163,7 +163,7 @@ df = pd.DataFrame({
 
 df['Product ID'] = range(1, len(df) + 1)
 df["Star Rating Percentage"] = Star_Rating_Percentage
-df.to_csv(r"data/ecommerce_scraped_data_final.csv", index=False)
+df.to_csv(r"data/ecommerce_scraped_data_Headphones.csv", index=False)
 
 
 '''
