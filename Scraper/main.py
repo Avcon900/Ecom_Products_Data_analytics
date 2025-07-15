@@ -28,7 +28,10 @@ def sendesc(browser):
 
 for category in categories:
     for page in range(1,20):
-        driver.get(f"https://www.amazon.in/s?k={category}&page={page}")
+        if page == 1:
+            driver.get(f"https://www.amazon.in/s?k={category}")
+        else:
+            driver.get(f"https://www.amazon.in/s?k={category}&page={page}")
         wait = WebDriverWait(driver, 10)
         time.sleep(2)
         
@@ -152,18 +155,18 @@ driver.quit()
 # Save to DataFrame
 df = pd.DataFrame({
     "Title": product_title,
-    "Number of Reviews": Number_of_Reviews,
+    "Number_of_Reviews": Number_of_Reviews,
     "Rating": Rating,
-    "Bought Last Month": Bought_last_month,
-    "Price After Discount": Price_after_Discount,
+    "Bought_Last_Month": Bought_last_month,
+    "Price_After_Discount": Price_after_Discount,
     "MRP": MRP,
-    "Image URL": Product_Image_urls,
+    "Image_URL": Product_Image_urls,
     
 })
 
-df['Product ID'] = range(1, len(df) + 1)
-df["Star Rating Percentage"] = Star_Rating_Percentage
-df.to_csv(r"data/ecommerce_scraped_data_Headphones.csv", index=False)
+df['Product_ID'] = range(1, len(df) + 1)
+df["Star_Rating_Percentage"] = Star_Rating_Percentage
+df.to_csv(r"data/headphones_raw_scraped.csv", index=False)
 
 
 '''
