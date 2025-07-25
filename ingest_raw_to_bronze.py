@@ -50,6 +50,8 @@ from pyspark.sql.functions import col, to_timestamp, to_date
 # Process new files
 if len(path) == 0:
     print("No new files to process.")
+    spark.stop()
+    exit(0)
 else:
     for file in path:
         # Read the CSV file
