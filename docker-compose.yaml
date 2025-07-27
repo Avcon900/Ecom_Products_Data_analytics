@@ -1,0 +1,14 @@
+version: "3.8"  # Specify the Compose file format version
+
+services:
+  my_shopping_helper:  # Name of the service (container)
+    build:  # Build the image from the Dockerfile
+      context: .  # Use the current directory as the build context
+    image: my_shopping_helper:latest  # Tag the image as 'elt-pipeline:latest'
+    container_name: my_shopping_helper_container  # Name of the container
+    volumes:  # Mount directories and files
+      - ./data:/app/data
+      - ./data_lake:/app/data_lake
+      - ./file_tracker_bronze.json:/app/file_tracker_bronze.json
+      - ./last_processed_timestamp_gold.txt:/app/last_processed_timestamp_gold.txt
+      - ./last_processed_timestamp.txt:/app/last_processed_timestamp.txt

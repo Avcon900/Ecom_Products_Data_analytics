@@ -1,0 +1,22 @@
+architecture diagrams/
+data/
+data_lake/
+env
+metastore_db/
+notebooks/
+placeholder_images/
+Scraper/
+spark-warehouse/
+.gitignore
+.dockerignore
+derby.log
+docker-compose.yaml
+dockerfile
+file_tracker_bronze.json
+last_processed_timestamp_gold.txt
+last_processed_timestamp.txt
+readme.md
+testing.py
+requirements.txt
+
+# This file is used to specify files and directories that should be ignored by Docker when building images.

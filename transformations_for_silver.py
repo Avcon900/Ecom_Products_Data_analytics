@@ -1,6 +1,8 @@
 import os
-os.environ["PYSPARK_PYTHON"] = "./env/Scripts/python.exe"
-os.environ["PYSPARK_DRIVER_PYTHON"] = "./env/Scripts/python.exe"
+import platform
+if platform.system() == "Windows":
+    os.environ["PYSPARK_PYTHON"] = "./env/Scripts/python.exe"
+    os.environ["PYSPARK_DRIVER_PYTHON"] = "./env/Scripts/python.exe"
 
 # Sets up a PySpark session with Delta Lake support
 import pyspark

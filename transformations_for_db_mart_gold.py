@@ -1,6 +1,8 @@
 import os
-os.environ["PYSPARK_PYTHON"] = "./env/Scripts/python.exe"
-os.environ["PYSPARK_DRIVER_PYTHON"] = "./env/Scripts/python.exe"
+import platform
+if platform.system() == "Windows":
+    os.environ["PYSPARK_PYTHON"] = "./env/Scripts/python.exe"
+    os.environ["PYSPARK_DRIVER_PYTHON"] = "./env/Scripts/python.exe"
 
 # Sets up a PySpark session with Delta Lake support
 import pyspark
@@ -10,7 +12,7 @@ builder = pyspark.sql.SparkSession.builder.appName("MyApp") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
     .config("spark.sql.warehouse.dir", "spark-warehouse") \
-    .master("local[8]") \
+    .master("local[*]") \
     .enableHiveSupport() \
 
 spark = configure_spark_with_delta_pip(builder).getOrCreate()
@@ -24,6 +26,9 @@ spark.sql("USE Ecom_Products_Data_Pipeline")
 # Define the path for the silver table
 
 silver_path = os.path.abspath("data_lake/silver/products").replace("\\", "/")
+
+print(f"Silver path: {silver_path}")
+print("Files in silver path:", os.listdir(silver_path))
 
 # Create the silver table if it does not exist
 spark.sql(f"""
@@ -53,7 +58,7 @@ silver_df = spark.sql(f"""
                       3_Star_Percentage AS Three_Star_Percentage, 2_Star_Percentage AS Two_Star_Percentage,
                       1_Star_Percentage AS One_Star_Percentage, category AS Product_Category, Image_URL AS Image,
                       scrape_date AS Scrape_Date
-                      FROM ecom_products_data_pipeline.products_silver AS products_silver
+                      FROM Ecom_Products_Data_Pipeline.products_silver AS products_silver
                       WHERE scrape_date > DATE('{last_processed_timestamp}')
                       """)
 
