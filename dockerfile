@@ -1,39 +1,26 @@
-FROM ubuntu:22.04 AS base
+FROM spark:3.5.0-scala2.12-java11-python3-ubuntu
+USER root
+WORKDIR /opt/spark/work-dir
 
-ARG spark_version="3.4.1"
-ARG delta_version="2.4.0"
-ARG openjdk_version="17"
-ARG python_version="3.10"
-
-
-RUN apt update && apt install -y openjdk-${openjdk_version}-jdk && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Spark
-RUN \
-    apt update && \
-    apt install -y wget && \
-    wget https://archive.apache.org/dist/spark/spark-${spark_version}/spark-${spark_version}-bin-hadoop3.tgz && \
-    tar xvf spark-${spark_version}-bin-hadoop3.tgz && \
-    mv spark-${spark_version}-bin-hadoop3/ /opt/spark && \
-    export SPARK_HOME=/opt/spark && \
-    export PATH=$PATH:$SPARK_HOME/bin:$SPARK_HOME/sbin && \
-    export PYSPARK_PYTHON=/usr/bin/python3 && \
-    rm spark-${spark_version}-bin-hadoop3.tgz
-
-# Install Python in new layer to improve rebuilds with different versions
-RUN \
-    apt update && \
-    apt install -y python${python_version} python3-pip && \
-    rm -rf /var/lib/apt/lists/*
-
+ARG WORKDIR=/opt/spark/work-dir
+ENV DELTA_PACKAGE_VERSION=delta-spark_3.1.0:${DELTA_SPARK_VERSION}
+ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
+ENV SPARK_HOME="/opt/spark"
 ENV PYSPARK_PYTHON=python3
 ENV PYSPARK_DRIVER_PYTHON=python3
 
-WORKDIR /app
+COPY requirements-docker.txt ${WORKDIR}/requirements-docker.txt
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -r ${WORKDIR}/requirements-docker.txt \
+    && rm -f ${WORKDIR}/requirements-docker.txt
 
-# Copy application files AFTER installing Spark and Hadoop
-COPY . /app/
+RUN apt -qq update
+RUN apt -qq -y install vim curl
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-docker.txt
+RUN wget -P /opt/spark/jars/ https://repo1.maven.org/maven2/io/delta/delta-spark_2.12/3.1.0/delta-spark_2.12-3.1.0.jar \
+    && wget -P /opt/spark/jars/ https://repo1.maven.org/maven2/io/delta/delta-storage/3.1.0/delta-storage-3.1.0.jar \
+    && wget -P /opt/spark/jars/ https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.24/postgresql-42.2.24.jar 
+
+COPY hive-site.xml /opt/spark/conf/hive-site.xml
+
+COPY . ${WORKDIR}

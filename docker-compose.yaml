@@ -4,11 +4,59 @@ services:
   my_shopping_helper:  # Name of the service (container)
     build:  # Build the image from the Dockerfile
       context: .  # Use the current directory as the build context
+    networks:
+      - spark-net
     image: my_shopping_helper:latest  # Tag the image as 'elt-pipeline:latest'
     container_name: my_shopping_helper_container  # Name of the container
     volumes:  # Mount directories and files
-      - ./data:/app/data
-      - ./data_lake:/app/data_lake
-      - ./file_tracker_bronze.json:/app/file_tracker_bronze.json
-      - ./last_processed_timestamp_gold.txt:/app/last_processed_timestamp_gold.txt
-      - ./last_processed_timestamp.txt:/app/last_processed_timestamp.txt
+      - ./data:/opt/spark/work-dir/data
+      - ./data_lake:/opt/spark/work-dir/data_lake
+      - ./file_tracker_bronze.json:/opt/spark/work-dir/file_tracker_bronze.json
+      - ./last_processed_timestamp_gold.txt:/opt/spark/work-dir/last_processed_timestamp_gold.txt
+      - ./last_processed_timestamp.txt:/opt/spark/work-dir/last_processed_timestamp.txt
+    ports:
+      - "4040:4040"  # Spark UI
+      - "7077:7077"  # Spark Master
+      - "8080:8080"  # Spark UI
+    depends_on:
+      - hive-metastore  # Ensure Hive Metastore is started before this service
+    command: tail -f /dev/null  # Keep the container running
+
+  postgres:
+    networks:
+      - spark-net
+    image: postgres:16
+    environment:
+      - POSTGRES_HOST_AUTH_METHOD=md5
+      - POSTGRES_DB=hive_metastore
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hivepass123
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"  # PostgreSQL default port
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data  # Use a named volume for persistent data
+    
+
+  hive-metastore:
+    image: apache/hive:4.0.0-alpha-2
+    networks:
+      - spark-net
+    environment:
+      - SERVICE_NAME=metastore
+      - DB_DRIVER=postgres
+      - SERVICE_OPTS=-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://postgres:5432/hive_metastore -Djavax.jdo.option.ConnectionUserName=hive -Djavax.jdo.option.ConnectionPassword=hivepass123
+    ports:
+      - "9083:9083"
+    volumes:
+      - ./spark-warehouse:/opt/spark/work-dir/spark-warehouse
+    depends_on:
+      - postgres
+    command: tail -f /dev/null  # Keep the container running
+
+volumes:
+  postgres-data:
+  warehouse:
+
+networks:
+  spark-net:
