@@ -12,6 +12,7 @@ builder = pyspark.sql.SparkSession.builder.appName("MyApp") \
     .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
     .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
     .config("spark.sql.warehouse.dir", "/opt/spark/work-dir/spark-warehouse") \
+    .config("spark.jars.packages", "io.delta:delta-core_2.12:2.4.0") \
     .master("local[*]") \
     .enableHiveSupport() \
 
@@ -114,4 +115,17 @@ else:
         )
     """)
 
+    dashboard_df = spark.sql("""
+        SELECT  * FROM Ecom_Products_Data_Pipeline.products_gold_latest
+                             """)
+    (
+    dashboard_df.write.format("jdbc")
+    .option("url", "jdbc:postgresql://postgres:5432/hive_metastore")
+    .option("dbtable", "products_gold_latest_export")
+    .option("user", "hive")
+    .option("password", "hivepass123")
+    .option("driver", "org.postgresql.Driver")
+    .mode("overwrite")
+    .save()
+    )
     spark.stop()
